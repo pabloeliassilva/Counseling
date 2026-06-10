@@ -73,21 +73,15 @@
 
       const listContainer = document.getElementById('list-categorias');
       if(listContainer) {
-        let html = '';
-        for(let i = 0; i < secciones.length; i++) {
-          let sec = secciones[i];
-          let activeClass = (activeCategoryId === sec.id) ? 'active' : '';
-          
-          // Concatenación pura y limpia inmune a errores de compilación en Apps Script
-          html += '<div class="cat-card ' + activeClass + '" style="--cat-color: #00B894" onclick="openSection('' + sec.id + '')">' +
-                    '<div class="cat-icon" style="background:#00B894">' + sec.icon + '</div>' +
-                    '<div class="cat-text-content">' +
-                      '<div class="cat-title">' + sec.title + '</div>' +
-                      '<div class="cat-desc">' + sec.desc + '</div>' +
-                    '</div>' +
-                  '</div>';
-        }
-        listContainer.innerHTML = html;
+        listContainer.innerHTML = secciones.map(sec => `
+          <div class="cat-card ${activeCategoryId === sec.id ? 'active' : ''}" style="--cat-color: #00B894" onclick="openSection('${sec.id}')">
+              <div class="cat-icon" style="background:#00B894">${sec.icon}</div>
+              <div class="cat-text-content">
+                  <div class="cat-title">${sec.title}</div>
+                  <div class="cat-desc">${sec.desc}</div>
+              </div>
+          </div>
+        `).join('');
       }
     }
 
@@ -121,12 +115,9 @@
     function renderMosaicos() {
       const container = document.getElementById('cv-mosaic-container');
       if(container) {
-        let html = '';
-        for(let i = 0; i < dbMosaicos.length; i++) {
-          let m = dbMosaicos[i];
-          html += '<img src="' + m.src + '" class="' + m.cls + '" loading="lazy" onclick="if(typeof playPhotoMidi===\'function\') playPhotoMidi(this)">';
-        }
-        container.innerHTML = html;
+        container.innerHTML = dbMosaicos.map(m => `
+          <img src="${m.src}" class="${m.cls}" loading="lazy" onclick="if(typeof playPhotoMidi==='function') playPhotoMidi(this)">
+        `).join('');
       }
     }
 
@@ -155,22 +146,23 @@
         let primeraLetra = tituloLimpio.charAt(0).toUpperCase() || '#';
         if (primeraLetra !== letraActual) {
           letraActual = primeraLetra; 
-          htmlCartas += '<div class="letter-divider">' + letraActual + '</div>';
+          htmlCartas += `<div class="letter-divider">${letraActual}</div>`;
         }
 
-        const activeClass = (activeConceptId == g.id) ? 'active' : '';
-        htmlCartas += '<div class="concept-card ' + activeClass + '" style="--cat-color: ' + colorCard + '" onclick="selectConcept('' + g.id + '')">' +
-                        '<div class="color-dot"></div>' +
-                        '<div class="concept-title">' + g.titulo + '</div>' +
-                        '<div class="concept-summary">' + g.resumen + '</div>' +
-                      '</div>';
+        htmlCartas += `
+          <div class="concept-card ${activeConceptId == g.id ? 'active' : ''}" style="--cat-color: ${colorCard}" onclick="selectConcept('${g.id}')">
+              <div class="color-dot"></div>
+              <div class="concept-title">${g.titulo}</div>
+              <div class="concept-summary">${g.resumen}</div>
+          </div>`;
       });
 
       const stats = document.getElementById('glossary-stats');
       if(stats) {
-        stats.innerHTML = '<span class="stat-badge">🗂️ Total: ' + filtrados.length + '</span>' +
-                          '<span class="stat-badge">🌞 Conceptos: ' + conceptosCount + '</span>' +
-                          '<span class="stat-badge">🔗 Links: ' + linksCount + '</span>';
+        stats.innerHTML = `
+          <span class="stat-badge">🗂️ Total: ${filtrados.length}</span>
+          <span class="stat-badge">🌞 Conceptos: ${conceptosCount}</span>
+          <span class="stat-badge">🔗 Links: summary${linksCount}</span>`;
       }
       grid.innerHTML = htmlCartas;
     }
@@ -195,11 +187,12 @@
       const concepto = dbGlosario.find(g => g.id == activeConceptId);
       
       if (!concepto) {
-        el.innerHTML = '<div class="empty-state-container" style="text-align: center; padding: 40px 20px;">' +
-                         '<h2 style="font-family: \'Merriweather\', serif; font-size: 2.2rem; color: var(--brand-color); margin-bottom: 15px;">Bienvenido a la Enciclopedia</h2>' +
-                         '<p style="font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 25px;">Un espacio dinámico para explorar y profundizar en el fascinante mundo del Counseling y la Psicología Humanista.</p>' +
-                         '<p style="margin-top: 30px; color: #94a3b8; font-style: italic; font-size:1.1rem;">👈 Selecciona una tarjeta en la lista para comenzar a explorar.</p>' +
-                       '</div>';
+        el.innerHTML = `
+          <div class="empty-state-container" style="text-align: center; padding: 40px 20px;">
+            <h2 style="font-family: 'Merriweather', serif; font-size: 2.2rem; color: var(--brand-color); margin-bottom: 15px;">Bienvenido a la Enciclopedia</h2>
+            <p style="font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 25px;">Un espacio dinámico para explorar y profundizar en el fascinante mundo del Counseling y la Psicología Humanista.</p>
+            <p style="margin-top: 30px; color: #94a3b8; font-style: italic; font-size:1.1rem;">👈 Selecciona una tarjeta en la lista para comenzar a explorar.</p>
+          </div>`;
         return;
       }
       
@@ -214,34 +207,33 @@
       let badgeHtml = isLink ? '<span class="concept-type-badge link">🔗 Link</span>' : '<span class="concept-type-badge">🌞 Concepto</span>';
       const googleSearchUrl = "https://www.google.com/search?q=" + encodeURIComponent("Counseling psicología " + concepto.titulo);
       
-      let html = '<div class="detail-container">' +
-                   '<a href="' + googleSearchUrl + '" target="_blank" rel="noopener noreferrer" class="btn-google-emoji" title="Buscar en Google">🔍</a>' +
-                   badgeHtml +
-                   '<h1 class="detail-title">' + concepto.titulo + '</h1>' +
-                   '<p class="detail-summary">' + concepto.resumen + '</p>' +
-                   '<div class="detail-category-label">📂 Categoría: <strong>' + nombreCategoria + '</strong></div>';
-                   
-      if (concepto.desarrolloHtml) {
-        html += '<div class="section-title">✍️ Desarrollo</div><div class="detail-text">' + concepto.desarrolloHtml + '</div>';
-      }
-      if (concepto.aplicacionHtml) {
-        html += '<div class="section-title">🛠️ Aplicación Clínica</div><div class="detail-text">' + concepto.aplicacionHtml + '</div>';
-      }
-      html += '</div>';
-      el.innerHTML = html;
+      el.innerHTML = `
+        <div class="detail-container">
+            <a href="${googleSearchUrl}" target="_blank" rel="noopener noreferrer" class="btn-google-emoji" title="Buscar en Google">🔍</a>
+            ${badgeHtml}
+            <h1 class="detail-title">${concepto.titulo}</h1>
+            <p class="detail-summary">${concepto.resumen}</p>
+            <div class="detail-category-label">📂 Categoría: <strong>${nombreCategoria}</strong></div>
+            ${concepto.desarrolloHtml ? `<div class="section-title">✍️ Desarrollo</div><div class="detail-text">${concepto.desarrolloHtml}</div>` : ''}
+            ${concepto.aplicacionHtml ? `<div class="section-title">🛠️ Aplicación Clínica</div><div class="detail-text">${concepto.aplicacionHtml}</div>` : ''}
+        </div>`;
     }
 
     function renderBlogSidebar() {
       const container = document.getElementById('ui-blog-list');
       if(container) {
-        container.innerHTML = dbBlogEntries.map(post => {
-          const activeClass = (activePostId === post.id) ? 'active' : '';
-          return '<div class="blog-item-nav ' + activeClass + '" onclick="selectBlogPost(' + post.id + ')">' +
-                   '<div class="blog-item-title-nav">' + post.titulo + '</div>' +
-                   '<div class="blog-item-date-nav">' + post.fecha + '</div>' +
-                 '</div>';
-        }).join('');
+        container.innerHTML = dbBlogEntries.map(post => `
+          <div class="blog-item-nav ${activePostId === post.id ? 'active' : ''}" onclick="selectBlogPost(${post.id})">
+            <div class="blog-item-title-nav">${post.titulo}</div>
+            <div class="blog-item-date-nav">${post.fecha}</div>
+          </div>`).join('');
       }
+    }
+
+    function selectBlogPost(id) {
+      activePostId = id;
+      renderBlogSidebar();
+      renderBlogPost();
     }
 
     function renderBlogPost() {
@@ -250,18 +242,20 @@
       const post = dbBlogEntries.find(p => p.id === activePostId);
 
       if (!post) {
-        container.innerHTML = '<div class="blog-welcome">' +
-                               '<h2>🌸 Cuaderno de Reflexiones</h2>' +
-                               '<p>Selecciona una entrada en el menú izquierdo para leer los últimos artículos sobre Counseling y Enfoque Centrado en la Persona.</p>' +
-                             '</div>';
+        container.innerHTML = `
+          <div class="blog-welcome">
+            <h2>🌸 Cuaderno de Reflexiones</h2>
+            <p>Selecciona una entrada en el menú izquierdo para leer los últimos artículos sobre Counseling y Enfoque Centrado en la Persona.</p>
+          </div>`;
         return;
       }
 
-      container.innerHTML = '<article class="blog-post">' +
-                              '<h2>' + post.titulo + '</h2>' +
-                              '<div class="blog-post-meta">Publicado: ' + post.fecha + ' por Lilian Romano</div>' +
-                              '<hr style="border:none; border-top:1px solid var(--border); margin-bottom:25px;">' +
-                              '<div class="blog-post-content">' + post.contenido + '</div>' +
-                            '</article>';
+      container.innerHTML = `
+        <article class="blog-post">
+          <h2>${post.titulo}</h2>
+          <div class="blog-post-meta">Publicado: ${post.fecha} por Lilian Romano</div>
+          <hr style="border:none; border-top:1px solid var(--border); margin-bottom:25px;">
+          <div class="blog-post-content">${post.contenido}</div>
+        </article>`;
     }
   
