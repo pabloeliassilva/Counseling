@@ -42,7 +42,8 @@
         .then(data => {
           dbCategorias = data.categories || [];
           
-          // RENDIMIENTO CRÍTICO: Ordenamos el glosario una sola vez aquí en la carga inicial.
+          // RENDIMIENTO CRÍTICO: Ordenamos el glosario una sola vez acá.
+          // Así evitamos llamadas pesadas a .sort() cada vez que tocás el menú izquierdo.
           dbGlosario = (data.glosario || []).sort((a, b) => 
             String(a.titulo || '').localeCompare(String(b.titulo || ''), 'es')
           );
@@ -76,7 +77,7 @@
         }
     }
 
-    // Navegación Izquierda optimizada usando interpolación nativa correctamente escapada
+    // Navegación Izquierda optimizada con concatenación limpia y segura de strings
     function renderMenu() {
       if(!DOM.listCategorias) return;
 
@@ -87,21 +88,22 @@
         { id: 'blog', icon: '✍️', title: 'NUESTRO BLOG', desc: 'Artículos y Notas' }
       ];
 
-      DOM.listCategorias.innerHTML = secciones.map(sec => {
-        const activeClass = (activeCategoryId === sec.id) ? 'active' : '';
-        return \`
-          <div class="cat-card \${activeClass}" style="--cat-color: #00B894" onclick="openSection('\${sec.id}')">
-            <div class="cat-icon" style="background:#00B894">\${sec.icon}</div>
-            <div class="cat-text-content">
-              <div class="cat-title">\${sec.title}</div>
-              <div class="cat-desc">\${sec.desc}</div>
-            </div>
-          </div>
-        \`;
-      }).join('');
+      let html = '';
+      for (let i = 0; i < secciones.length; i++) {
+        let sec = secciones[i];
+        let activeClass = (activeCategoryId === sec.id) ? 'active' : '';
+        html += '<div class="cat-card ' + activeClass + '" style="--cat-color: #00B894" onclick="openSection('' + sec.id + '')">' +
+                  '<div class="cat-icon" style="background:#00B894">' + sec.icon + '</div>' +
+                  '<div class="cat-text-content">' +
+                    '<div class="cat-title">' + sec.title + '</div>' +
+                    '<div class="cat-desc">' + sec.desc + '</div>' +
+                  '</div>' +
+                '</div>';
+      }
+      DOM.listCategorias.innerHTML = html;
     }
 
-    // Controlador SPA de respuesta rápida
+    // Controlador SPA de respuesta instantánea
     function openSection(type) {
       autoCollapseMenu();
       if(typeof cancelarTimersGlobales === 'function') cancelarTimersGlobales();
@@ -132,12 +134,15 @@
       const container = document.getElementById('cv-mosaic-container');
       if(!container) return;
       
-      container.innerHTML = dbMosaicos.map(m => 
-        \`<img src="\${m.src}" class="\${m.cls}" loading="lazy" onclick="if(typeof playPhotoMidi==='function') playPhotoMidi(this)">\`
-      ).join('');
+      let html = '';
+      for (let i = 0; i < dbMosaicos.length; i++) {
+        let m = dbMosaicos[i];
+        html += '<img src="' + m.src + '" class="' + m.cls + '" loading="lazy" onclick="if(typeof playPhotoMidi==='function') playPhotoMidi(this)">';
+      }
+      container.innerHTML = html;
     }
 
-    // Renderizador optimizado libre de re-ordenamientos costosos en tiempo de ejecución
+    // Generador de conceptos optimizado y libre de bugs de escape
     function renderConceptos() {
       if (activeCategoryId !== 'enciclopedia' || !DOM.gridConceptos) return;
 
@@ -149,42 +154,38 @@
       let linksCount = 0; 
       let conceptosCount = 0;
       let letraActual = '';
+      let html = '';
       
-      const htmlBuffer = [];
-      
-      dbGlosario.forEach(g => {
-        const catOriginal = dbCategorias.find(c => c.id == g.categoriaId);
-        const colorCard = catOriginal ? catOriginal.color : '#00B894';
+      for (let i = 0; i < dbGlosario.length; i++) {
+        let g = dbGlosario[i];
+        let catOriginal = dbCategorias.find(c => c.id == g.categoriaId);
+        let colorCard = catOriginal ? catOriginal.color : '#00B894';
         
-        const isLink = (g.tipo && g.tipo.toLowerCase().includes('link')) || (catOriginal && catOriginal.nombre.toUpperCase() === 'LINKS');
+        let isLink = (g.tipo && g.tipo.toLowerCase().includes('link')) || (catOriginal && catOriginal.nombre.toUpperCase() === 'LINKS');
         if(isLink) linksCount++; else conceptosCount++;
 
-        const tituloLimpio = String(g.titulo || '').trim();
-        const primeraLetra = tituloLimpio.charAt(0).toUpperCase() || '#';
+        let tituloLimpio = String(g.titulo || '').trim();
+        let primeraLetra = tituloLimpio.charAt(0).toUpperCase() || '#';
         
         if (primeraLetra !== letraActual) {
           letraActual = primeraLetra; 
-          htmlBuffer.push(\`<div class="letter-divider">\${letraActual}</div>\`);
+          html += '<div class="letter-divider">' + letraActual + '</div>';
         }
 
-        const activeClass = (activeConceptId == g.id) ? 'active' : '';
-        htmlBuffer.push(\`
-          <div class="concept-card \${activeClass}" style="--cat-color: \${colorCard}" onclick="selectConcept('\${g.id}')">
-            <div class="color-dot"></div>
-            <div class="concept-title">\${g.titulo}</div>
-            <div class="concept-summary">\${g.resumen}</div>
-          </div>
-        \`);
-      });
+        let activeClass = (activeConceptId == g.id) ? 'active' : '';
+        html += '<div class="concept-card ' + activeClass + '" style="--cat-color: ' + colorCard + '" onclick="selectConcept('' + g.id + '')">' +
+                  '<div class="color-dot"></div>' +
+                  '<div class="concept-title">' + g.titulo + '</div>' +
+                  '<div class="concept-summary">' + g.resumen + '</div>' +
+                '</div>';
+      }
 
       if(DOM.glossaryStats) {
-        DOM.glossaryStats.innerHTML = \`
-          <span class="stat-badge">🗂️ Total: \${dbGlosario.length}</span>
-          <span class="stat-badge">🌞 Conceptos: \${conceptosCount}</span>
-          <span class="stat-badge">🔗 Links: \${linksCount}</span>
-        \`;
+        DOM.glossaryStats.innerHTML = '<span class="stat-badge">🗂️ Total: ' + dbGlosario.length + '</span>' +
+                                      '<span class="stat-badge">🌞 Conceptos: ' + conceptosCount + '</span>' +
+                                      '<span class="stat-badge">🔗 Links: ' + linksCount + '</span>';
       }
-      DOM.gridConceptos.innerHTML = htmlBuffer.join('');
+      DOM.gridConceptos.innerHTML = html;
     }
 
     function selectConcept(id) {
@@ -206,12 +207,11 @@
       const concepto = dbGlosario.find(g => g.id == activeConceptId);
       
       if (!concepto) {
-        DOM.detailTarjeta.innerHTML = \`
-          <div class="empty-state-container" style="text-align: center; padding: 40px 20px;">
-             <h2 style="font-family: 'Merriweather', serif; font-size: 2.2rem; color: var(--brand-color); margin-bottom: 15px;">Bienvenido a la Enciclopedia</h2>
-             <p style="font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 25px;">Un espacio dinámico para explorar y profundizar en el fascinante mundo del Counseling y la Psicología Humanista.</p>
-             <p style="margin-top: 30px; color: #94a3b8; font-style: italic; font-size:1.1rem;">👈 Selecciona una tarjeta en la lista para comenzar a explorar.</p>
-          </div>\`;
+        DOM.detailTarjeta.innerHTML = '<div class="empty-state-container" style="text-align: center; padding: 40px 20px;">' +
+                                         '<h2 style="font-family: 'Merriweather', serif; font-size: 2.2rem; color: var(--brand-color); margin-bottom: 15px;">Bienvenido a la Enciclopedia</h2>' +
+                                         '<p style="font-size: 1.1rem; color: #475569; line-height: 1.7; margin-bottom: 25px;">Un espacio dinámico para explorar y profundizar en el fascinante mundo del Counseling y la Psicología Humanista.</p>' +
+                                         '<p style="margin-top: 30px; color: #94a3b8; font-style: italic; font-size:1.1rem;">👈 Selecciona una tarjeta en la lista para comenzar a explorar.</p>' +
+                                       '</div>';
         return;
       }
       
@@ -226,19 +226,18 @@
       const badgeHtml = isLink ? '<span class="concept-type-badge link">🔗 Link</span>' : '<span class="concept-type-badge">🌞 Concepto</span>';
       const googleSearchUrl = "https://www.google.com/search?q=" + encodeURIComponent("Counseling psicología " + concepto.titulo);
       
-      let html = \`
-        <div class="detail-container">
-           <a href="\${googleSearchUrl}" target="_blank" rel="noopener noreferrer" class="btn-google-emoji" title="Buscar en Google">🔍</a>
-           \${badgeHtml}
-           <h1 class="detail-title">\${concepto.titulo}</h1>
-           <p class="detail-summary">\${concepto.resumen}</p>
-           <div class="detail-category-label">📂 Categoría: <strong>\${nombreCategoria}</strong></div>\`;
+      let html = '<div class="detail-container">' +
+                   '<a href="' + googleSearchUrl + '" target="_blank" rel="noopener noreferrer" class="btn-google-emoji" title="Buscar en Google">🔍</a>' +
+                   badgeHtml +
+                   '<h1 class="detail-title">' + concepto.titulo + '</h1>' +
+                   '<p class="detail-summary">' + concepto.resumen + '</p>' +
+                   '<div class="detail-category-label">📂 Categoría: <strong>' + nombreCategoria + '</strong></div>';
                    
       if (concepto.desarrolloHtml) {
-        html += \`<div class="section-title">✍️ Desarrollo</div><div class="detail-text">\${concepto.desarrolloHtml}</div>\`;
+        html += '<div class="section-title">✍️ Desarrollo</div><div class="detail-text">' + concepto.desarrolloHtml + '</div>';
       }
       if (concepto.aplicacionHtml) {
-        html += \`<div class="section-title">🛠️ Aplicación Clínica</div><div class="detail-text">\${concepto.aplicacionHtml}</div>\`;
+        html += '<div class="section-title">🛠️ Aplicación Clínica</div><div class="detail-text">' + concepto.aplicacionHtml + '</div>';
       }
       html += '</div>';
       DOM.detailTarjeta.innerHTML = html;
@@ -248,14 +247,22 @@
       const container = document.getElementById('ui-blog-list');
       if(!container) return;
       
-      container.innerHTML = dbBlogEntries.map(post => {
-        const activeClass = (activePostId == post.id) ? 'active' : '';
-        return \`
-          <div class="blog-item-nav \${activeClass}" onclick="selectBlogPost(\${post.id})">
-             <div class="blog-item-title-nav">\${post.titulo}</div>
-             <div class="blog-item-date-nav">\${post.fecha}</div>
-          </div>\`;
-      }).join('');
+      let html = '';
+      for (let i = 0; i < dbBlogEntries.length; i++) {
+        let post = dbBlogEntries[i];
+        let activeClass = (activePostId == post.id) ? 'active' : '';
+        html += '<div class="blog-item-nav ' + activeClass + '" onclick="selectBlogPost(' + post.id + ')">' +
+                  '<div class="blog-item-title-nav">' + post.titulo + '</div>' +
+                  '<div class="blog-item-date-nav">' + post.fecha + '</div>' +
+                '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function selectBlogPost(id) {
+      activePostId = id;
+      renderBlogSidebar();
+      renderBlogPost();
     }
 
     function renderBlogPost() {
@@ -264,20 +271,18 @@
       const post = dbBlogEntries.find(p => p.id == activePostId);
 
       if (!post) {
-        container.innerHTML = \`
-          <div class="blog-welcome">
-             <h2>🌸 Cuaderno de Reflexiones</h2>
-             <p>Selecciona una entrada en el menú izquierdo para leer los últimos artículos sobre Counseling y Enfoque Centrado en la Persona.</p>
-          </div>\`;
+        container.innerHTML = '<div class="blog-welcome">' +
+                               '<h2>🌸 Cuaderno de Reflexiones</h2>' +
+                               '<p>Selecciona una entrada en el menú izquierdo para leer los últimos artículos sobre Counseling y Enfoque Centrado en la Persona.</p>' +
+                             '</div>';
         return;
       }
 
-      container.innerHTML = \`
-        <article class="blog-post">
-           <h2>\${post.titulo}</h2>
-           <div class="blog-post-meta">Publicado: \${post.fecha} por Lilian Romano</div>
-           <hr style="border:none; border-top:1px solid var(--border); margin-bottom:25px;">
-           <div class="blog-post-content">\${post.contenido}</div>
-        </article>\`;
+      container.innerHTML = '<article class="blog-post">' +
+                              '<h2>' + post.titulo + '</h2>' +
+                              '<div class="blog-post-meta">Publicado: ' + post.fecha + ' por Lilian Romano</div>' +
+                              '<hr style="border:none; border-top:1px solid var(--border); margin-bottom:25px;">' +
+                              '<div class="blog-post-content">' + post.contenido + '</div>' +
+                            '</article>';
     }
   
