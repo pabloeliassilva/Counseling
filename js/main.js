@@ -1,4 +1,4 @@
-// ECOSISTEMA BLINDADO V3 - CONTROLADOR GENERAL SPA
+// ECOSISTEMA BLINDADO V4 - CONTROLADOR GENERAL SPA
     let dbCategorias = [];
     let dbGlosario = [];
     let dateUpdateStr = "";
@@ -23,6 +23,14 @@
     let isMenuCollapsed = true;
 
     document.addEventListener("DOMContentLoaded", () => {
+      // 1. Inicialización inmediata de la interfaz (El menú funcionará pase lo que pase)
+      renderMenu();
+      renderMosaicos();
+      renderBlogSidebar();
+      renderBlogPost();
+      openSection('cv');
+
+      // 2. Carga asíncrona en segundo plano para los datos dinámicos de la enciclopedia
       fetch('data.json')
         .then(res => {
           if(!res.ok) throw new Error("Error HTTP al recuperar data.json");
@@ -36,16 +44,16 @@
           const elDate = document.getElementById('footer-date');
           if(elDate) elDate.innerText = dateUpdateStr;
           
-          renderMenu();
-          renderMosaicos();
-          renderBlogSidebar();
-          renderBlogPost();
-          openSection('cv');
+          // Si el usuario ya navegó a la enciclopedia, refrescamos las tarjetas con los datos recibidos
+          if (activeCategoryId === 'enciclopedia') {
+             renderConceptos();
+          }
         })
         .catch(err => {
-          console.error("❌ Error crítico en inicialización de datos:", err);
+          console.warn("⚠️ Nota de Datos:", err.message);
+          // Si falla localmente por CORS, dejamos un aviso amigable en la grilla de conceptos
           const grid = document.getElementById('grid-conceptos');
-          if(grid) grid.innerHTML = '<div class="empty-state">Error al cargar la base de datos del glosario.</div>';
+          if(grid) grid.innerHTML = '<div class="empty-state">Los conceptos se visualizarán correctamente al subir el sitio a GitHub Pages o usando un servidor local (Live Server).</div>';
         });
     });
 
@@ -73,6 +81,7 @@
 
       const listContainer = document.getElementById('list-categorias');
       if(listContainer) {
+        // Volvemos al mapeo limpio con template literals nativos escapados de forma segura (\`)
         listContainer.innerHTML = secciones.map(sec => `
           <div class="cat-card ${activeCategoryId === sec.id ? 'active' : ''}" style="--cat-color: #00B894" onclick="openSection('${sec.id}')">
               <div class="cat-icon" style="background:#00B894">${sec.icon}</div>
@@ -112,15 +121,6 @@
       window.scrollTo(0,0);
     }
 
-    function renderMosaicos() {
-      const container = document.getElementById('cv-mosaic-container');
-      if(container) {
-        container.innerHTML = dbMosaicos.map(m => `
-          <img src="${m.src}" class="${m.cls}" loading="lazy" onclick="if(typeof playPhotoMidi==='function') playPhotoMidi(this)">
-        `).join('');
-      }
-    }
-
     function renderConceptos() {
       if (activeCategoryId !== 'enciclopedia') return;
       let filtrados = [...dbGlosario].sort((a, b) => String(a.titulo || '').localeCompare(String(b.titulo || ''), 'es'));
@@ -128,7 +128,7 @@
       if (!grid) return;
 
       if (filtrados.length === 0) {
-        grid.innerHTML = '<div class="empty-state">No hay conceptos para mostrar.</div>'; 
+        grid.innerHTML = '<div class="empty-state">No hay conceptos para mostrar en este momento.</div>'; 
         return;
       }
 
@@ -150,7 +150,7 @@
         }
 
         htmlCartas += `
-          <div class="concept-card ${activeConceptId == g.id ? 'active' : ''}" style="--cat-color: ${colorCard}" onclick="selectConcept('${g.id}')">
+          <div class="concept-card ${activeConceptId == g.id ? 'active' : ''}" style="--cat-color: 	htmlCartas ${colorCard}" onclick="selectConcept('${g.id}')">
               <div class="color-dot"></div>
               <div class="concept-title">${g.titulo}</div>
               <div class="concept-summary">${g.resumen}</div>
@@ -162,7 +162,7 @@
         stats.innerHTML = `
           <span class="stat-badge">🗂️ Total: ${filtrados.length}</span>
           <span class="stat-badge">🌞 Conceptos: ${conceptosCount}</span>
-          <span class="stat-badge">🔗 Links: summary${linksCount}</span>`;
+          <span class="stat-badge">🔗 Links: ${linksCount}</span>`;
       }
       grid.innerHTML = htmlCartas;
     }
