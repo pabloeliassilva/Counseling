@@ -77,13 +77,17 @@
         for(let i = 0; i < secciones.length; i++) {
           let sec = secciones[i];
           let activeClass = (activeCategoryId === sec.id) ? 'active' : '';
-          html += '<div class="cat-card ' + activeClass + '" style="--cat-color: #00B894" onclick="openSection('' + sec.id + '')">' +
-                    '<div class="cat-icon" style="background:#00B894">' + sec.icon + '</div>' +
-                    '<div class="cat-text-content">' +
-                      '<div class="cat-title">' + sec.title + '</div>' +
-                      '<div class="cat-desc">' + sec.desc + '</div>' +
-                    '</div>' +
-                  '</div>';
+          
+          // Reemplazo con Template Literals correctamente escapados para el ecosistema Apps Script -> GitHub
+          html += `
+            <div class="cat-card \${activeClass}" style="--cat-color: #00B894" onclick="openSection('\${sec.id}')">
+              <div class="cat-icon" style="background:#00B894">\${sec.icon}</div>
+              <div class="cat-text-content">
+                <div class="cat-title">\${sec.title}</div>
+                <div class="cat-desc">\${sec.desc}</div>
+              </div>
+            </div>
+          `;
         }
         listContainer.innerHTML = html;
       }
