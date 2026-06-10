@@ -16,6 +16,9 @@
     let flashTimerInterval = null;
     let flashTimeRestante = 60;
 
+    // Estado persistente interno para sub-métricas
+    let subContadorCorrectas = 0;
+
     const neonColors = ['#ff00ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000', '#ff9900'];
     let audioCtx = null;
     let activeOscillators = [];
@@ -159,6 +162,7 @@
 
     function updatePuntajeGlobal(puntos) {
       puntajeGlobalTotal += puntos;
+      if(puntajeGlobalTotal < 0) puntajeGlobalTotal = 0;
       const el = document.getElementById('ui-global-score');
       if(el) {
         el.innerHTML = `🏆 Global: ${puntajeGlobalTotal} pts`;
@@ -258,17 +262,15 @@
       let mensaje = ""; let consejo = ""; let scoreMaximo = 10;
       if(juegoActual === 'invasores' || juegoActual === 'runner') scoreMaximo = 20;
 
-      if (puntajeJuego >= (scoreMaximo * 0.9)) { mensaje = "¡Perfección Absoluta! 🏆"; consejo = "Dominio impecable del glosario."; } 
-      else if (puntajeJuego >= (scoreMaximo * 0.6)) { mensaje = "¡Excelente Trabajo! 🌟"; consejo = "Demuestras gran fluidez conceptual."; } 
-      else { mensaje = "¡A Seguir Estudiando! 📚"; consejo = "Utiliza el panel para profundizar cada concepto."; }
+      if (puntajeJuego >= (scoreMaximo * 0.9)) { mensaje = "¡Perfección Absoluta! 🏆"; consejo = "Dominio impecable del glosario."; }       else if (puntajeJuego >= (scoreMaximo * 0.6)) { mensaje = "¡Excelente Trabajo! 🌟"; consejo = "Demuestras gran fluidez conceptual."; }       else { mensaje = "¡A Seguir Estudiando! 📚"; consejo = "Utiliza el panel para profundizar cada concepto."; }
 
       let htmlRespuestas = `<div style="text-align:left; margin-top: 25px; max-height: 250px; overflow-y: auto; padding: 20px; background: white; border-radius: 12px; border: 2px solid #e2e8f0;">
         <h3 style="color:#9b59b6; margin-bottom:15px; font-size:1.2rem;">📝 Resumen de Respuestas:</h3>
         ${historialRespuestas.map(r => `
             <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #cbd5e1; font-size: 0.95rem;">
-                <strong>Contexto:</strong> <span>${r.pre}</span> <br>
-                <strong>Tú:</strong> <span style="color:${r.res === r.cor || ['Sí','Correcto','Emparejado','Empatía'].includes(r.res) ? '#2ecc71':'#e74c3c'}">${r.res}</span> <br>
-                <strong>Esperado:</strong> <span style="color:#2ecc71">${r.cor}</span> <br>
+                <strong>Contexto:</strong> <span>${r.pre}</span> <br />
+                <strong>Tú:</strong> <span style="color:${r.res === r.cor || ['Sí','Correcto','Emparejado','Empatía'].includes(r.res) ? '#2ecc71':'#e74c3c'}">${r.res}</span> <br />
+                <strong>Esperado:</strong> <span style="color:#2ecc71">${r.cor}</span> <br />
                 <em style="font-size: 0.85rem; color: #64748b; display:block; margin-top:6px;">💡 ${r.exp}</em>
             </div>`).join('')}</div>`;
 
@@ -284,7 +286,7 @@
       }
 
       const view = document.getElementById('arcade-main-view');
-      if(view) view.innerHTML = renderDashboardHTML() + `<div class="result-box"><h2>${mensaje}</h2><div class="result-score">${puntajeJuego} / ${scoreMaximo}</div><p>${consejo}</p>${htmlRespuestas}<br>${btnAction}</div>` + obtenerManual();
+      if(view) view.innerHTML = renderDashboardHTML() + `<div class="result-box"><h2>${mensaje}</h2><div class="result-score">${puntajeJuego} / ${scoreMaximo}</div><p>${consejo}</p>${htmlRespuestas}<br />${btnAction}</div>` + obtenerManual();
     }
 
     function finalizarMaraton() {
@@ -298,8 +300,12 @@
       if(typeof loopInvasores !== 'undefined' && loopInvasores) cancelAnimationFrame(loopInvasores);
       if(typeof loopRunner !== 'undefined' && loopRunner) cancelAnimationFrame(loopRunner);
       if(flashTimerInterval) clearInterval(flashTimerInterval);
-      stopMidiMusic(); modoFlash = false;
+      stopMidiMusic(); modoFlash = false; subContadorCorrectas = 0;
       let ui = document.getElementById('flash-timer-ui'); if(ui) ui.remove();
+
+      // Desvincular de forma segura los listeners de teclado globales del DOM
+      if(window.invKeyDown) { document.removeEventListener('keydown', window.invKeyDown); document.removeEventListener('keyup', window.invKeyUp); }
+      if(window.runKeyDown) { document.removeEventListener('keydown', window.runKeyDown); }
     }
 
     setInterval(() => {
