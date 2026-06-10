@@ -23,7 +23,6 @@
     let isMenuCollapsed = true;
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Consumo asíncrono optimizado de la base de datos estática
       fetch('data.json')
         .then(res => {
           if(!res.ok) throw new Error("Error HTTP al recuperar data.json");
@@ -75,7 +74,7 @@
       const listContainer = document.getElementById('list-categorias');
       if(listContainer) {
         listContainer.innerHTML = secciones.map(sec => `
-          <div class="cat-card \${activeCategoryId === sec.id ? 'active' : ''}" style="--cat-color: #00B894" onclick="openSection('\ center\${sec.id}')">
+          <div class="cat-card \${activeCategoryId === sec.id ? 'active' : ''}" style="--cat-color: #00B894" onclick="openSection('\${sec.id}')">
               <div class="cat-icon" style="background:#00B894">\${sec.icon}</div>
               <div class="cat-text-content">
                   <div class="cat-title">\${sec.title}</div>
@@ -151,7 +150,7 @@
         }
 
         htmlCartas += `
-          <div class="concept-card \${activeConceptId == g.id ? 'active' : ''}" style="--cat-color: \${colorCard}" onclick="selectConcept('\ center\${g.id}')">
+          <div class="concept-card \${activeConceptId == g.id ? 'active' : ''}" style="--cat-color: \${colorCard}" onclick="selectConcept('\${g.id}')">
               <div class="color-dot"></div>
               <div class="concept-title">\${g.titulo}</div>
               <div class="concept-summary">\${g.resumen}</div>
