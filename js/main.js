@@ -1,4 +1,4 @@
-
+// ECOSISTEMA BLINDADO V3 - CONTROLADOR GENERAL SPA
     let dbCategorias = [];
     let dbGlosario = [];
     let dateUpdateStr = "";
@@ -73,16 +73,19 @@
 
       const listContainer = document.getElementById('list-categorias');
       if(listContainer) {
-        listContainer.innerHTML = secciones.map(sec => {
-          const activeClass = (activeCategoryId === sec.id) ? 'active' : '';
-          return '<div class="cat-card ' + activeClass + '" style="--cat-color: #00B894" onclick="openSection('' + sec.id + '')">' +
-                   '<div class="cat-icon" style="background:#00B894">' + sec.icon + '</div>' +
-                   '<div class="cat-text-content">' +
-                     '<div class="cat-title">' + sec.title + '</div>' +
-                     '<div class="cat-desc">' + sec.desc + '</div>' +
-                   '</div>' +
-                 '</div>';
-        }).join('');
+        let html = '';
+        for(let i = 0; i < secciones.length; i++) {
+          let sec = secciones[i];
+          let activeClass = (activeCategoryId === sec.id) ? 'active' : '';
+          html += '<div class="cat-card ' + activeClass + '" style="--cat-color: #00B894" onclick="openSection('' + sec.id + '')">' +
+                    '<div class="cat-icon" style="background:#00B894">' + sec.icon + '</div>' +
+                    '<div class="cat-text-content">' +
+                      '<div class="cat-title">' + sec.title + '</div>' +
+                      '<div class="cat-desc">' + sec.desc + '</div>' +
+                    '</div>' +
+                  '</div>';
+        }
+        listContainer.innerHTML = html;
       }
     }
 
@@ -116,9 +119,12 @@
     function renderMosaicos() {
       const container = document.getElementById('cv-mosaic-container');
       if(container) {
-        container.innerHTML = dbMosaicos.map(m => {
-          return '<img src="' + m.src + '" class="' + m.cls + '" loading="lazy" onclick="if(typeof playPhotoMidi===\'function\') playPhotoMidi(this)">';
-        }).join('');
+        let html = '';
+        for(let i = 0; i < dbMosaicos.length; i++) {
+          let m = dbMosaicos[i];
+          html += '<img src="' + m.src + '" class="' + m.cls + '" loading="lazy" onclick="if(typeof playPhotoMidi===\'function\') playPhotoMidi(this)">';
+        }
+        container.innerHTML = html;
       }
     }
 
