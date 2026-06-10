@@ -12,7 +12,9 @@
       hangWordObj = { real, oculta, vidas: 6, usadas: [], pista: c.resumen }; renderHangmanBoard();
     }
     function renderHangmanBoard() {
-      let tHtml = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split('').map(l => `<button class="hang-letter \${hangWordObj.usadas.includes(l)?'used':''}" \${hangWordObj.usadas.includes(l)?'disabled':`onclick="guessHangmanLetter('\ center\${l}')"`} style="padding:12px 18px; margin:4px; font-weight:bold; cursor:pointer;" onmouseenter="playMarimbaHover()">\${l}</button>`).join('');
+      let tHtml = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split('').map(l => `
+        <button class="hang-letter \${hangWordObj.usadas.includes(l)?'used':''}" \${hangWordObj.usadas.includes(l)?'disabled':\`onclick="guessHangmanLetter('\${l}')"\`} style="padding:12px 18px; margin:4px; font-weight:bold; cursor:pointer;" onmouseenter="playMarimbaHover()">\${l}</button>
+      `).join('');
       const view = document.getElementById('arcade-main-view');
       if(view) {
         view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Volver</button><div class="game-active-header"><span>🔤 Ahorcado</span><span>Palabra \${ronda+1}/3 | Vidas: \${hangWordObj.vidas} ❤️</span></div><div class="game-text-question"><b>Pista:</b> "\${hangWordObj.pista}"</div><div style="font-family:monospace; font-size:3rem; letter-spacing:10px; margin:35px 0; color:#9b59b6; font-weight:bold;">\${hangWordObj.oculta}</div><div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-width:600px; margin:0 auto;">\${tHtml}</div>` + obtenerManual();
@@ -60,7 +62,7 @@
       setTimeout(renderFinalResult, 1500); 
     }
 
-    // 3. CONCEPTO FRAGMENTADO (Totalmente Corregido)
+    // 3. CONCEPTO FRAGMENTADO
     let fragObj = { real: "", arr: [], sel: [] };
     function startFragmentado() { playMidiTheme('arcade_intro'); historialRespuestas = []; juegoActual = 'fragmentado'; ronda = 0; puntajeJuego = 0; bancoJuego = mezclarArray(dbGlosario.filter(g => g.resumen.length > 20 && g.resumen.length < 100)).slice(0, 3); nextFragmentado(); }
     function nextFragmentado() {
@@ -70,7 +72,7 @@
     function renderFragmentado() {
       let fHtml = fragObj.arr.map((w, i) => { 
         let isUsed = fragObj.sel.includes(i); 
-        return `<div class="frag-word \${isUsed?'used':''}" \${isUsed?'':`onclick="clickFrag(${i})"`} onmouseenter="playMarimbaHover()">\${w}</div>`; 
+        return `<div class="frag-word \${isUsed?'used':''}" \${isUsed?'':\`onclick="clickFrag(\${i})"`} onmouseenter="playMarimbaHover()">\${w}</div>`; 
       }).join('');
       
       let currentSentence = fragObj.sel.map(idx => fragObj.arr[idx]).join(' ');
@@ -89,7 +91,7 @@
     let wObj = { palabra: '', intentos: 0, max: 6, historial: [] };
     function startWordle() { playMidiTheme('arcade_intro'); historialRespuestas = []; juegoActual = 'wordle'; puntajeJuego = 0; let cand = dbGlosario.filter(g => g.titulo.length >= 4 && g.titulo.length <= 7 && !g.titulo.includes(' ')); if(!cand.length) cand = [{titulo: "TERAPIA"}]; wObj.palabra = normalizarP(cand[Math.floor(Math.random() * cand.length)].titulo).toUpperCase(); wObj.intentos = 0; wObj.historial = []; renderWordleBoard(); }
     function renderWordleBoard() {
-      let histHtml = wObj.historial.map(h => `<div style="display:flex;gap:10px;justify-content:center;margin-bottom:10px;">\${h.split('').map((letra, i) => { let color = '#cbd5e1'; if(wObj.palabra[i] === letra) color = '#2ecc71'; else if(wObj.palabra.includes(letra)) color = '#f1c40f'; return `<span style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:\${color};color:white;font-weight:900;font-size:1.6rem;border-radius:8px;">\${letra}</span>`}).join('')}</div>`).join('');
+      let histHtml = wObj.historial.map(h => `<div style="display:flex;gap:10px;justify-content:center;margin-bottom:10px;">\${h.split('').map((letra, i) => { let color = '#cbd5e1'; if(wObj.palabra[i] === letra) color = '#2ecc71'; else if(wObj.palabra.includes(letra)) color = '#f1c40f'; return \`<span style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:\${color};color:white;font-weight:900;font-size:1.6rem;border-radius:8px;">\${letra}</span>\`}).join('')}</div>`).join('');
       const view = document.getElementById('arcade-main-view');
       if(view) {
         view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Volver</button><div class="game-active-header"><span>🟩 Wordle Clínico</span><span>Intentos: \${wObj.intentos}/6</span></div><p>Palabra de <b>\${wObj.palabra.length} letras</b>.</p><div style="margin:30px 0;">\${histHtml}</div><input type="text" id="w-input" maxlength="\${wObj.palabra.length}" style="text-transform:uppercase;padding:15px;font-size:1.6rem;width:280px;text-align:center;font-weight:bold;"><br /><button class="game-play-btn" onclick="checkWordle()" style="margin-top:25px;">Comprobar Palabra</button>` + obtenerManual();
@@ -106,7 +108,7 @@
       renderWordleBoard();
     }
 
-    // 5. SOPA DE LETRAS (Totalmente Corregido)
+    // 5. SOPA DE LETRAS
     let slObj = { grid: [], word: '', coords: [], seleccionadas: [], round: 0, max: 10, time: 0 };
     function startSopa() { playMidiTheme('matching'); historialRespuestas = []; juegoActual = 'sopa'; puntajeJuego = 0; slObj = { grid: [], word: '', coords: [], seleccionadas: [], round: 0, max: 10, time: 0 }; if(timerGlobal) clearInterval(timerGlobal); timerGlobal = setInterval(() => { if(juegoActual === 'sopa') { slObj.time++; let elTime = document.getElementById('sopa-time'); if(elTime) elTime.innerText = slObj.time + "s"; } }, 1000); nextSopa(); }
     function nextSopa() {
@@ -139,19 +141,19 @@
       for(let r=0; r<8; r++) { 
         for(let c=0; c<8; c++) { 
           let isS = slObj.seleccionadas.some(s => s.r === r && s.c === c); 
-          hG += `<div onclick="clickSopa(\${r},\${c})" style="width:45px;height:45px;display:flex;align-items:center;justify-content:center;background:\${isS?'#9b59b6':'#fff'};color:\${isS?'white':'#333'};border:2px solid #cbd5e1;cursor:pointer;font-weight:900;" onmouseenter="playMarimbaHover()">\${slObj.grid[r][c]}</div>`; 
+          hG += `<div onclick="clickSopa(\{r},\{c})" style="width:45px;height:45px;display:flex;align-items:center;justify-content:center;background:\${isS?'#9b59b6':'#fff'};color:\${isS?'white':'#333'};border:2px solid #cbd5e1;cursor:pointer;font-weight:900;" onmouseenter="playMarimbaHover()">\${slObj.grid[r][c]}</div>`; 
         } 
       }
       hG += '</div>';
       const view = document.getElementById('arcade-main-view');
       if(view) {
-        view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Volver</button><div class="game-active-header"><span>🔍 Sopa</span><span>Ronda \${slObj.round + 1} / \${slObj.max} | ⏱️ <span id="sopa-time">\${slObj.time}s</span></span></div><p>Encuentra: <b style="color:#9b59b6; letter-spacing:3px;">\${slObj.word}</b></p>\${hG}<button class="game-play-btn" onclick="checkSopa()">Verificar</button>` + obtenerManual();
+        view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Volver</button><div class="game-active-header"><span>🔍 Sopa</span><span>Ronda \${slObj.round + 1} / \heslObj.max} | ⏱️ <span id="sopa-time">\${slObj.time}s</span></span></div><p>Encuentra: <b style="color:#9b59b6; letter-spacing:3px;">\${slObj.word}</b></p>\${hG}<button class="game-play-btn" onclick="checkSopa()">Verificar</button>` + obtenerManual();
       }
     }
     function clickSopa(r, c) { let idx = slObj.seleccionadas.findIndex(s => s.r === r && s.c === c); if(idx >= 0) slObj.seleccionadas.splice(idx, 1); else slObj.seleccionadas.push({r, c}); renderSopa(); }
     function checkSopa() {
       if(slObj.seleccionadas.length === slObj.coords.length) {
-         let matchCount = 0; slObj.seleccionadas.forEach(sel => { if(slObj.coords.some(coord => coord.r === sel.r && coord.c === sel.c)) matchCount++; });
+         let matchCount = 0; slObj.seleccionadas.forEach(sel => { if(slObj.coords.some(coord => coord.r == sel.r && coord.c == sel.c)) matchCount++; });
          if(matchCount === slObj.coords.length) { slObj.round++; updatePuntajeGlobal(1); nextSopa(); return; }
       }
       updatePuntajeGlobal(-1); slObj.seleccionadas = []; renderSopa();
