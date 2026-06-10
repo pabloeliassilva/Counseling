@@ -8,17 +8,16 @@
       let botones = bombObj.current.ops.map(o => `<button class="option-btn" onclick="evaluarBombardeo('${escapeString(o)}')" onmouseenter="playMarimbaHover()">${o}</button>`).join('');
       const view = document.getElementById('arcade-main-view');
       if(view) {
-        view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Salir</button><div class="game-active-header"><span>⏱️ Bombardeo</span><span>Score: ${bombObj.score}</span></div><div class="timer-bar"><div class="timer-fill" id="bomb-bar" style="width:${(bombObj.time/60)*100}%"></div></div><div class="game-text-question">${bombObj.current.q}</div><div class="options-stack">${botones}</div>` + obtenerManual();
+        view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="renderArcadeMenu()">← Salir</button><div class="game-active-header"><span>⏱️ Bombardeo</span><span>Score: ${bombObj.score}</span></div><div class="timer-bar"><div class="timer-fill" id="bomb-bar" style="width:${(bombObj.time/60)*100}%"></div></div><div class="game-text-question">	extMuted${bombObj.current.q}</div><div class="options-stack">${botones}</div>` + obtenerManual();
       }
     }
     function evaluarBombardeo(sel) { if(sel === bombObj.current.c) { bombObj.score++; updatePuntajeGlobal(1); } else { updatePuntajeGlobal(-1); } historialRespuestas.push({pre: bombObj.current.q, res: sel, cor: bombObj.current.c, exp: "Clasificación veloz."}); nextBombardeo(); }
 
-    // 2. INVASORES TERAPÉUTICOS
+    // 2. INVASORES TERAPÉUTICOS (Puntaje Aislado de Alta Performance)
     let invState = {};
     const bloquesNormales = ["Juicio", "Prejuicio", "Crítica", "Censura"];
     const bloquesDuros = ["Trauma", "Resistencia", "Bloqueo", "Soberbia"];
     
-    // Vinculación explícita a window para limpieza modular
     window.invKeyDown = function(e) { invState.keys[e.code] = true; if(e.code === 'Space') { e.preventDefault(); shootInv(); } };
     window.invKeyUp = function(e) { invState.keys[e.code] = false; };
 
@@ -37,6 +36,7 @@
         invState.bullets.push({ x: invState.playerX + invState.playerW/2 - 2, y: 340, w: 5, h: 12, dmg: 1, color: '#f1c40f' });
     }
     function stopInvasores() { invState.playing = false; document.removeEventListener('keydown', window.invKeyDown); document.removeEventListener('keyup', window.invKeyUp); renderArcadeMenu(); }
+    
     function updateInvasores() {
         if(!invState.playing) return; let canvas = document.getElementById('space-canvas'); if(!canvas) return; let ctx = canvas.getContext('2d');
         invState.level = 1 + Math.floor(invState.score / 15); invState.speedMod = 1 + ((invState.level - 1) * 0.15);
@@ -56,18 +56,34 @@
             for(let j = invState.bullets.length - 1; j >= 0; j--) {
                 let b = invState.bullets[j];
                 if(b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
-                    invState.score += e.maxHp; updatePuntajeGlobal(e.maxHp); invState.enemies.splice(i, 1); invState.bullets.splice(j, 1); hit = true; break;
+                    invState.score += e.maxHp; 
+                    invState.enemies.splice(i, 1); invState.bullets.splice(j, 1); hit = true; break;
                 }
             }
             if(hit) continue;
-            if(e.y > canvas.height) { invState.lives--; updatePuntajeGlobal(-2); invState.enemies.splice(i, 1); if(invState.lives <= 0) return endInvasores(); }             else { ctx.fillStyle = e.color; ctx.fillRect(e.x, e.y, e.w, e.h); ctx.fillStyle = 'white'; ctx.fillText(e.text, e.x + e.w/2, e.y + 15); }
+            if(e.y > canvas.height) { 
+                invState.lives--; 
+                invState.score = Math.max(0, invState.score - 2); 
+                invState.enemies.splice(i, 1); 
+                if(invState.lives <= 0) return endInvasores(); 
+            } 
+            else { ctx.fillStyle = e.color; ctx.fillRect(e.x, e.y, e.w, e.h); ctx.fillStyle = 'white'; ctx.fillText(e.text, e.x + e.w/2, e.y + 15); }
         }
-        let elScore = document.getElementById('inv-score'); if(elScore) elScore.innerText = `Nivel: center${invState.level} | Pts: ${invState.score} | Vidas: ${invState.lives}`;
+        let elScore = document.getElementById('inv-score'); if(elScore) elScore.innerText = `Nivel: \${invState.level} | Pts: \${invState.score} | Vidas: \${invState.lives}`;
         loopInvasores = requestAnimationFrame(updateInvasores);
     }
-    function endInvasores() { invState.playing = false; document.removeEventListener('keydown', window.invKeyDown); document.removeEventListener('keyup', window.invKeyUp); puntajeJuego = invState.score >= 20 ? 20 : invState.score; historialRespuestas.push({ pre: "Invasores", res: "Nivel " + invState.level, cor: invState.score + " pts", exp: "Derribaste barreras terapéuticas." }); renderFinalResult(); }
+    
+    function endInvasores() { 
+        invState.playing = false; 
+        document.removeEventListener('keydown', window.invKeyDown); 
+        document.removeEventListener('keyup', window.invKeyUp); 
+        if(invState.score > 0) { updatePuntajeGlobal(invState.score); }
+        puntajeJuego = invState.score >= 20 ? 20 : invState.score; 
+        historialRespuestas.push({ pre: "Invasores", res: "Nivel " + invState.level, cor: invState.score + " pts", exp: "Derribaste barreras terapéuticas." }); 
+        renderFinalResult(); 
+    }
 
-    // 3. SUPER COUNSELOR RUNNER
+    // 3. SUPER COUNSELOR RUNNER (Puntaje Aislado de Alta Performance)
     let runState = {};
     const runEnemies = ["Consejo no pedido", "Juicio de valor", "Interrupción", "Proyección"];
     const runCoins = ["Escucha Activa", "Silencio", "Rapport"];
@@ -85,6 +101,7 @@
     }
     function jumpRunner() { if(runState.p.jumps < 2) { runState.p.vy = runState.jumpForce; runState.p.jumps++; } }
     function stopRunner() { runState.playing = false; document.removeEventListener('keydown', window.runKeyDown); renderArcadeMenu(); }
+    
     function updateRunner() {
       if(!runState.playing) return; let canvas = document.getElementById('runner-canvas'); if(!canvas) return; let ctx = canvas.getContext('2d');
       runState.frames++; runState.distance += runState.speed * 0.01;
@@ -97,11 +114,24 @@
       for(let i = runState.obstacles.length - 1; i >= 0; i--) {
         let o = runState.obstacles[i]; o.x -= runState.speed; ctx.fillStyle = '#c0392b'; ctx.fillRect(o.x, o.y, o.w, o.h);
         if(runState.p.x < o.x + o.w && runState.p.x + runState.p.w > o.x && runState.p.y < o.y + o.h && runState.p.y + runState.p.h > o.y) {
-          runState.lives--; updatePuntajeGlobal(-3); runState.obstacles.splice(i, 1); if(runState.lives <= 0) return endRunner();
-        } else if(o.x + o.w < 0) { runState.score++; updatePuntajeGlobal(1); runState.obstacles.splice(i, 1); }
+          runState.lives--; 
+          runState.score = Math.max(0, runState.score - 3); 
+          runState.obstacles.splice(i, 1); if(runState.lives <= 0) return endRunner();
+        } else if(o.x + o.w < 0) { 
+          runState.score++; 
+          runState.obstacles.splice(i, 1); 
+        }
       }
-      let elScore = document.getElementById('run-score'); if(elScore) elScore.innerText = `Distancia: ${Math.floor(runState.distance)}m | Pts: ${runState.score} | Vidas: ${runState.lives}`;
+      let elScore = document.getElementById('run-score'); if(elScore) elScore.innerText = `Distancia: \${Math.floor(runState.distance)}m | Puntos: \${runState.score} | Vidas: \${runState.lives}`;
       loopRunner = requestAnimationFrame(updateRunner);
     }
-    function endRunner() { runState.playing = false; document.removeEventListener('keydown', window.runKeyDown); puntajeJuego = runState.score >= 20 ? 20 : runState.score; historialRespuestas.push({ pre: "Runner", res: Math.floor(runState.distance) + " m", cor: runState.score + " pts", exp: "Esquivaste respuestas inadecuadas." }); renderFinalResult(); }
+    
+    function endRunner() { 
+        runState.playing = false; 
+        document.removeEventListener('keydown', window.runKeyDown); 
+        if(runState.score > 0) { updatePuntajeGlobal(runState.score); }
+        puntajeJuego = runState.score >= 20 ? 20 : runState.score; 
+        historialRespuestas.push({ pre: "Runner", res: Math.floor(runState.distance) + " m", cor: runState.score + " pts", exp: "Esquivaste respuestas inadecuadas." }); 
+        renderFinalResult(); 
+    }
   
