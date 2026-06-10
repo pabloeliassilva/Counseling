@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Puentes de Escucha 🌸 COUNSELING</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header onclick="openSection('enciclopedia')" title="Volver al Inicio">
+    <h1>Puentes de Escucha 🌸 COUNSELING</h1>
+  </header>
+
+  <div class="app-container" id="main-app-container">
+    
+    <aside class="col col-categorias collapsed" id="sidebar-menu">
+      <div class="menu-toggle-container">
+        <button class="menu-toggle-btn" onclick="toggleMenu()" title="Expandir/Contraer Menú">☰</button>
+      </div>
+      <div class="menu-list-fixed" id="list-categorias"></div>
+    </aside>
+
+    <section class="col col-conceptos">
+      <div class="master-glossary-card">
+        <div class="glossary-header">
+           <h2>Conceptos y Enlaces</h2>
+           <div class="glossary-stats" id="glossary-stats"></div>
+        </div>
+        <div class="conceptos-grid" id="grid-conceptos">
+          <div class="empty-state">Cargando la enciclopedia...</div>
+        </div>
+      </div>
+    </section>
+
+    <article class="col col-tarjeta" id="col-tarjeta-container">
+      <button class="btn-mobile-close" onclick="closeMobileDetail()">Volver a la Enciclopedia</button>
+      <div class="col-content" id="detail-tarjeta"></div>
+    </article>
+
+    <section class="col col-form" id="col-form-container">
+      <button class="btn-mobile-close" onclick="openSection('cv')">Volver</button>
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScj4G-N0KKV4czPMos1Aoh-VmGWUeHxVEW6Su7vi-AoaOXvzg/viewform?embedded=true" frameborder="0" marginheight="0" marginwidth="0">Cargando…</iframe>
+    </section>
+    
+    <section class="col col-cv" id="col-cv-container">
+      <div class="cv-wrapper">
+        <div class="cv-header-grid">
+           <aside class="cv-contact-card">
+              <div class="cv-contact-inner">
+                  <div style="width: 130px; height: 130px; margin: 0 auto 20px auto; border-radius: 50%; background-color: var(--brand-color); border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <svg viewBox="0 0 100 100" fill="white" width="90%" height="90%">
+                      <path d="M50 50c11 0 20-9 20-20S61 10 50 10 30 21 30 32s9 18 20 18zm0 10c-13.3 0-40 6.7-40 20v10h80V80c0-13.3-26.7-20-40-20z" />
+                    </svg>
+                  </div>
+                  <h2>Lilian Beatriz Romano</h2>
+                  <hr>
+                  <h3>Counselor.<br><br>Licenciada en Ciencias de la Educación.</h3>
+                  <hr>
+                  <p>CEL: 3541 38-5904</p>
+                  <p>Del Campillo 1478. Bialet Massé. Córdoba.</p>
+              </div>
+              <div class="cv-card-buttons">
+                  <a href="https://wa.me/5493541385904?text=Hola%20Lilian,%20me%20comunico%20desde%20la%20Enciclopedia." target="_blank" class="cv-btn cv-btn-wa">💬 WhatsApp</a>
+                  <button onclick="openSection('form')" class="cv-btn cv-btn-form">📝 Formulario</button>
+              </div>
+           </aside>
+
+           <main class="cv-intro-elegant">
+              <h3>¡Hola! Soy Lilian</h3>
+              <p>Te doy la más cálida bienvenida a esta Enciclopedia de Counseling interactiva. Mi misión es facilitar el desarrollo humano y promover el bienestar emocional desde el Enfoque Centrado en la Persona.</p>
+              <h4>Trayectoria Profesional</h4>
+              <ul>
+                <li>Más de 15 años acompañando procesos de crisis vitales y desarrollo personal.</li>
+                <li>Especialización en orientación vocacional y dinámicas de grupo.</li>
+                <li>Docente titular en diversas instituciones de nivel superior.</li>
+              </ul>
+              <h4>Formación Académica</h4>
+              <ul>
+                <li>Consultora Psicológica (Counselor).</li>
+                <li>Licenciatura en Ciencias de la Educación (Universidad de Córdoba).</li>
+                <li>Posgrado en Terapias Humanistas y Existenciales.</li>
+              </ul>
+           </main>
+        </div>
+
+        <div class="cordoba-card">
+            <h3>Te escucho</h3>
+            <p>Córdoba es un espacio de encuentro auténtico, donde la majestuosidad de sus sierras nos invita a reconectar con nuestro propio organismo. En esta tierra de arroyos transparentes y horizontes infinitos, la naturaleza actúa como un facilitador silencioso, brindando un marco de aceptación incondicional. Aquí, el aire puro y el silencio profundo nos ayudan a escuchar nuestra voz interior, promoviendo el crecimiento, la autoexploración y la congruencia en cada paso de nuestro proceso humano.</p>
+        </div>
+        
+        <div class="cv-mosaic" id="cv-mosaic-container"></div>
+
+        <div style="margin-top: 30px; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); padding-bottom: 30px;">
+            <iframe src="https://maps.google.com/maps?q=Del%20Campillo%201478,%20Bialet%20Masse,%20Cordoba&t=&z=13&ie=UTF8&iwloc=&output=embed" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="col col-game" id="col-game-container">
+      <button class="btn-mobile-close" onclick="openSection('cv')" style="position:absolute; top:15px; left:15px; z-index: 100;">Salir</button>
+      <div class="game-wrapper" id="arcade-main-view"></div>
+    </section>
+
+    <section class="col col-blog" id="col-blog-container">
+      <div class="blog-wrapper">
+         <aside class="blog-sidebar">
+            <h3 class="blog-sidebar-title">Entradas recientes</h3>
+            <div class="blog-list" id="ui-blog-list"></div>
+         </aside>
+         <main class="blog-body" id="ui-blog-body"></main>
+      </div>
+    </section>
+
+  </div>
+  
+  <footer>
+    Lilian Beatriz Romano. Counselor y Licenciada en Ciencias de la Educación. CEL: 3541 38-5904. Del Campillo 1478. Bialet Massé. Córdoba. | Actualizado: <span id="footer-date"></span> 🌸
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/games-core.js"></script>
+  <script src="js/games-logic.js"></script>
+  <script src="js/games-words.js"></script>
+  <script src="js/games-action.js"></script>
+</body>
+</html>
