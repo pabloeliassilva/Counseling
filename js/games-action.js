@@ -17,6 +17,11 @@
     let invState = {};
     const bloquesNormales = ["Juicio", "Prejuicio", "Crítica", "Censura"];
     const bloquesDuros = ["Trauma", "Resistencia", "Bloqueo", "Soberbia"];
+    
+    // Vinculación explícita a window para limpieza modular
+    window.invKeyDown = function(e) { invState.keys[e.code] = true; if(e.code === 'Space') { e.preventDefault(); shootInv(); } };
+    window.invKeyUp = function(e) { invState.keys[e.code] = false; };
+
     function startInvasores() {
       playMidiTheme('invasores'); historialRespuestas = []; juegoActual = 'invasores'; puntajeJuego = 0;
       invState = { playing: true, score: 0, playerX: 300, playerW: 60, playerH: 40, bullets: [], enemies: [], powerups: [], lastEnemy: 0, keys: {}, lives: 3, speedMod: 1, level: 1, weaponType: 0, weaponTimer: 0 };
@@ -24,16 +29,14 @@
       if(view) {
         view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="stopInvasores()">← Salir</button><div class="game-active-header"><span>🚀 Invasores</span><span id="inv-score">Nivel: 1 | Pts: 0 | Vidas: 3</span></div><canvas id="space-canvas" class="canvas-game" width="700" height="400"></canvas><div class="space-controls"><button class="btn-space" onmousedown="invState.keys.ArrowLeft=true" onmouseup="invState.keys.ArrowLeft=false">⬅️ Izq</button><button class="btn-space btn-space-shoot" onmousedown="shootInv()">⚡ Disparar Empatía</button><button class="btn-space" onmousedown="invState.keys.ArrowRight=true" onmouseup="invState.keys.ArrowRight=false">Der ➡️</button></div>` + obtenerManual();
       }
-      document.addEventListener('keydown', invKeyDown); document.addEventListener('keyup', invKeyUp);
+      document.addEventListener('keydown', window.invKeyDown); document.addEventListener('keyup', window.invKeyUp);
       loopInvasores = requestAnimationFrame(updateInvasores);
     }
-    function invKeyDown(e) { invState.keys[e.code] = true; if(e.code === 'Space') { e.preventDefault(); shootInv(); } }
-    function invKeyUp(e) { invState.keys[e.code] = false; }
     function shootInv() {
         if(!invState.playing) return;
         invState.bullets.push({ x: invState.playerX + invState.playerW/2 - 2, y: 340, w: 5, h: 12, dmg: 1, color: '#f1c40f' });
     }
-    function stopInvasores() { invState.playing = false; document.removeEventListener('keydown', invKeyDown); document.removeEventListener('keyup', invKeyUp); renderArcadeMenu(); }
+    function stopInvasores() { invState.playing = false; document.removeEventListener('keydown', window.invKeyDown); document.removeEventListener('keyup', window.invKeyUp); renderArcadeMenu(); }
     function updateInvasores() {
         if(!invState.playing) return; let canvas = document.getElementById('space-canvas'); if(!canvas) return; let ctx = canvas.getContext('2d');
         invState.level = 1 + Math.floor(invState.score / 15); invState.speedMod = 1 + ((invState.level - 1) * 0.15);
@@ -57,18 +60,20 @@
                 }
             }
             if(hit) continue;
-            if(e.y > canvas.height) { invState.lives--; updatePuntajeGlobal(-2); invState.enemies.splice(i, 1); if(invState.lives <= 0) return endInvasores(); } 
-            else { ctx.fillStyle = e.color; ctx.fillRect(e.x, e.y, e.w, e.h); ctx.fillStyle = 'white'; ctx.fillText(e.text, e.x + e.w/2, e.y + 15); }
+            if(e.y > canvas.height) { invState.lives--; updatePuntajeGlobal(-2); invState.enemies.splice(i, 1); if(invState.lives <= 0) return endInvasores(); }             else { ctx.fillStyle = e.color; ctx.fillRect(e.x, e.y, e.w, e.h); ctx.fillStyle = 'white'; ctx.fillText(e.text, e.x + e.w/2, e.y + 15); }
         }
-        let elScore = document.getElementById('inv-score'); if(elScore) elScore.innerText = `Nivel: ${invState.level} | Pts: ${invState.score} | Vidas: ${invState.lives}`;
+        let elScore = document.getElementById('inv-score'); if(elScore) elScore.innerText = `Nivel: center${invState.level} | Pts: ${invState.score} | Vidas: ${invState.lives}`;
         loopInvasores = requestAnimationFrame(updateInvasores);
     }
-    function endInvasores() { invState.playing = false; document.removeEventListener('keydown', invKeyDown); document.removeEventListener('keyup', invKeyUp); puntajeJuego = invState.score >= 20 ? 20 : invState.score; historialRespuestas.push({ pre: "Invasores", res: "Nivel " + invState.level, cor: invState.score + " pts", exp: "Derribaste barreras terapéuticas." }); renderFinalResult(); }
+    function endInvasores() { invState.playing = false; document.removeEventListener('keydown', window.invKeyDown); document.removeEventListener('keyup', window.invKeyUp); puntajeJuego = invState.score >= 20 ? 20 : invState.score; historialRespuestas.push({ pre: "Invasores", res: "Nivel " + invState.level, cor: invState.score + " pts", exp: "Derribaste barreras terapéuticas." }); renderFinalResult(); }
 
     // 3. SUPER COUNSELOR RUNNER
     let runState = {};
     const runEnemies = ["Consejo no pedido", "Juicio de valor", "Interrupción", "Proyección"];
     const runCoins = ["Escucha Activa", "Silencio", "Rapport"];
+    
+    window.runKeyDown = function(e) { if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jumpRunner(); } };
+
     function startRunner() {
       playMidiTheme('runner'); historialRespuestas = []; juegoActual = 'runner'; puntajeJuego = 0;
       runState = { playing: true, score: 0, distance: 0, p: { x: 50, y: 300, w: 40, h: 40, vy: 0, jumps: 0, invincibility: 0 }, floorY: 340, gravity: 0.7, jumpForce: -12, speed: 6.5, obstacles: [], coins: [], powerups: [], frames: 0, lives: 3 };
@@ -76,11 +81,10 @@
       if(view) {
         view.innerHTML = renderDashboardHTML() + `<button class="game-back-menu" onclick="stopRunner()">← Salir</button><div class="game-active-header"><span>🍄 Super Runner</span><span id="run-score">Distancia: 0m | Puntos: 0 | Vidas: 3</span></div><canvas id="runner-canvas" class="canvas-game" width="700" height="400"></canvas><div class="space-controls"><button class="btn-space btn-space-shoot" style="background:#27ae60;" onmousedown="jumpRunner()">⬆️ SALTAR</button></div>` + obtenerManual();
       }
-      document.addEventListener('keydown', runKeyDown); loopRunner = requestAnimationFrame(updateRunner);
+      document.addEventListener('keydown', window.runKeyDown); loopRunner = requestAnimationFrame(updateRunner);
     }
-    function runKeyDown(e) { if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jumpRunner(); } }
     function jumpRunner() { if(runState.p.jumps < 2) { runState.p.vy = runState.jumpForce; runState.p.jumps++; } }
-    function stopRunner() { runState.playing = false; document.removeEventListener('keydown', runKeyDown); renderArcadeMenu(); }
+    function stopRunner() { runState.playing = false; document.removeEventListener('keydown', window.runKeyDown); renderArcadeMenu(); }
     function updateRunner() {
       if(!runState.playing) return; let canvas = document.getElementById('runner-canvas'); if(!canvas) return; let ctx = canvas.getContext('2d');
       runState.frames++; runState.distance += runState.speed * 0.01;
@@ -96,8 +100,8 @@
           runState.lives--; updatePuntajeGlobal(-3); runState.obstacles.splice(i, 1); if(runState.lives <= 0) return endRunner();
         } else if(o.x + o.w < 0) { runState.score++; updatePuntajeGlobal(1); runState.obstacles.splice(i, 1); }
       }
-      let elScore = document.getElementById('run-score'); if(elScore) elScore.innerText = `Distancia: Hand${Math.floor(runState.distance)}m | Pts: ${runState.score} | Vidas: ${runState.lives}`;
+      let elScore = document.getElementById('run-score'); if(elScore) elScore.innerText = `Distancia: ${Math.floor(runState.distance)}m | Pts: ${runState.score} | Vidas: ${runState.lives}`;
       loopRunner = requestAnimationFrame(updateRunner);
     }
-    function endRunner() { runState.playing = false; document.removeEventListener('keydown', runKeyDown); puntajeJuego = runState.score >= 20 ? 20 : runState.score; historialRespuestas.push({ pre: "Runner", res: Math.floor(runState.distance) + " m", cor: runState.score + " pts", exp: "Esquivaste respuestas inadecuadas." }); renderFinalResult(); }
+    function endRunner() { runState.playing = false; document.removeEventListener('keydown', window.runKeyDown); puntajeJuego = runState.score >= 20 ? 20 : runState.score; historialRespuestas.push({ pre: "Runner", res: Math.floor(runState.distance) + " m", cor: runState.score + " pts", exp: "Esquivaste respuestas inadecuadas." }); renderFinalResult(); }
   
